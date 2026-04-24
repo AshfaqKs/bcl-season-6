@@ -143,8 +143,8 @@ const Home = () => {
                         <p className="text-[10px] font-black text-blue-500 uppercase tracking-[0.3em]">GAMES</p>
                     </div>
                     <div className="text-center space-y-3 border-l border-white/5">
-                        <p className="text-6xl font-black text-blue-400 italic tracking-tighter">{data.matches.filter(m => m.isCompleted).length}</p>
-                        <p className="text-[10px] font-black text-cyan-400 uppercase tracking-[0.3em]">RESULTS</p>
+                        <p className="text-6xl font-black text-white-400 italic tracking-tighter">{data.matches.filter(m => m.isCompleted).length}</p>
+                        <p className="text-[10px] font-black text-blue-400 uppercase tracking-[0.3em]">RESULTS</p>
                     </div>
                 </div>
             </section>
