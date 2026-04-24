@@ -36,30 +36,27 @@ const PlayerProfile = () => {
     if (error) return <ErrorMessage message={error} />;
 
     return (
-        <div className="space-y-12 animate-fadeIn pb-20">
+        <div className="space-y-12 animate-fadeIn pb-20 px-4 md:px-0">
             {/* Navigation Header */}
-            <div className="flex justify-between items-center border-b border-white/10 pb-8">
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-6 border-b border-white/10 pb-8">
                 <Link to="/players" className="text-gray-400 hover:text-white transition-colors flex items-center space-x-2">
                     <span className="text-xl">←</span>
                     <span className="text-xs font-black uppercase tracking-widest">Back to Squads</span>
                 </Link>
-                <div className="flex items-center space-x-4">
-                    <DownloadButton 
-                        elementId="player-card" 
-                        filename={`bcl-${player.name.replace(/\s+/g, '-')}`} 
-                        label="Download Signature Card"
-                    />
-                </div>
+                <DownloadButton 
+                    elementId="player-card" 
+                    filename={`bcl-${player.name.replace(/\s+/g, '-')}`} 
+                    label="Download Signature Card"
+                />
             </div>
 
-            {/* SIGNATURE CARD POSTER */}
-            <div className="flex justify-center items-center py-10">
-                <div className="transform scale-[0.8] md:scale-100 origin-top">
+            {/* SIGNATURE CARD POSTER - RESPONSIVE CONTAINER */}
+            <div className="flex justify-center items-center py-4 overflow-hidden w-full">
+                <div className="relative transform scale-[0.3] sm:scale-[0.5] md:scale-[0.7] lg:scale-100 origin-center my-[-300px] sm:my-[-200px] md:my-[-100px] lg:my-0">
                     <PosterLayout id="player-card">
                         <div className="flex flex-col h-full p-2 relative">
                             <div className="flex justify-between items-start mb-16">
                                 <div className="space-y-4">
-                                    {/* FIXED: Locked leading for exact capture alignment */}
                                     <h1 className="text-7xl font-black italic text-white uppercase tracking-tighter leading-[1.1] pr-6">{player.name}</h1>
                                     <div className="flex items-center space-x-3">
                                         <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center p-1.5 shadow-xl">
@@ -74,7 +71,6 @@ const PlayerProfile = () => {
                             </div>
 
                             <div className="flex-grow flex gap-12 items-center">
-                                {/* CRYSTAL CLEAR PLAYER PHOTO */}
                                 <div className="w-[480px] aspect-[4/5] bg-slate-800 rounded-[40px] overflow-hidden border-[10px] border-white/10 shadow-2xl relative shrink-0">
                                     {player.photoUrl ? (
                                         <img 
@@ -90,7 +86,6 @@ const PlayerProfile = () => {
                                     ) : (
                                         <div className="w-full h-full flex items-center justify-center text-8xl opacity-20">👤</div>
                                     )}
-                                    {/* Position Overlay - FIXED: Absolute anchoring */}
                                     <div className="absolute top-8 left-8 bg-blue-600 text-white px-6 py-2 rounded-2xl font-black text-lg tracking-[0.2em] shadow-2xl border border-white/20 leading-none">
                                         {player.position}
                                     </div>

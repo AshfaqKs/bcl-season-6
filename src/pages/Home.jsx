@@ -18,8 +18,8 @@ const Home = () => {
 
     if (loading) return <Loading />;
 
-    const recentMatches = data.matches.filter(m => m.isCompleted).sort((a,b) => new Date(b.date) - new Date(a.date)).slice(0, 3);
-    const upcomingMatches = data.matches.filter(m => !m.isCompleted).sort((a,b) => new Date(a.date) - new Date(b.date)).slice(0, 3);
+    const recentMatches = data.matches.filter(m => m.isCompleted).sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 3);
+    const upcomingMatches = data.matches.filter(m => !m.isCompleted).sort((a, b) => new Date(a.date) - new Date(b.date)).slice(0, 3);
 
     return (
         <div className="space-y-24 animate-fadeIn pb-20">
@@ -30,7 +30,7 @@ const Home = () => {
                     <div className="absolute top-[-20%] right-[-10%] w-[500px] h-[500px] bg-blue-500 rounded-full blur-[150px]"></div>
                     <div className="absolute bottom-[-20%] left-[-10%] w-[500px] h-[500px] bg-cyan-500 rounded-full blur-[150px]"></div>
                 </div>
-                
+
                 <div className="text-center relative z-10 space-y-8 px-4">
                     <p className="text-blue-500 font-black uppercase tracking-[0.6em] text-xs md:text-sm animate-pulse">Official League Hub</p>
                     <div className="space-y-2">
@@ -67,7 +67,7 @@ const Home = () => {
                                         </div>
                                         <div className="font-black uppercase tracking-tighter text-white text-xs md:text-sm text-center italic">{teamA?.name}</div>
                                     </div>
-                                    
+
                                     <div className="mx-8 flex flex-col items-center">
                                         <div className="bg-white text-slate-950 px-6 py-2 rounded-2xl font-black text-3xl italic shadow-2xl border-2 border-white/10">
                                             {m.scoreA} - {m.scoreB}
@@ -136,7 +136,7 @@ const Home = () => {
                     </div>
                     <div className="text-center space-y-3 border-x border-white/5">
                         <p className="text-6xl font-black text-white italic tracking-tighter">{data.players.length}</p>
-                        <p className="text-[10px] font-black text-blue-500 uppercase tracking-[0.3em]">ATHLETES</p>
+                        <p className="text-[10px] font-black text-blue-500 uppercase tracking-[0.3em]">PLAYERS</p>
                     </div>
                     <div className="text-center space-y-3">
                         <p className="text-6xl font-black text-white italic tracking-tighter">{data.matches.length}</p>

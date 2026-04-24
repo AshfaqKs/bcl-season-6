@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
-import { getTeams, getMatches } from "../firebase/firestoreUtils";
+import { getTeams, getPlayers, getMatches } from "../firebase/firestoreUtils";
 import { Loading, ErrorMessage } from "../components/Status";
 import PosterLayout from "../components/PosterLayout";
 import PosterHeader from "../components/PosterHeader";
 import DownloadButton from "../components/DownloadButton";
 
 const Leaderboard = () => {
-    const [stats, setStats] = useState([]);
+    const [teams, setTeams] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [posterMode, setPosterMode] = useState(false);
@@ -14,27 +14,35 @@ const Leaderboard = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [teams, matches] = await Promise.all([getTeams(), getMatches()]);
-                const completedMatches = matches.filter(m => m.isCompleted);
+                const [tData, pData, mData] = await Promise.all([getTeams(), getPlayers(), getMatches()]);
                 
-                const teamStats = teams.map(team => {
-                    let played = 0, won = 0, drawn = 0, lost = 0, gf = 0, ga = 0;
-                    completedMatches.forEach(m => {
-                        if (m.teamA === team.id) {
-                            played++; gf += m.scoreA; ga += m.scoreB;
-                            if (m.scoreA > m.scoreB) won++;
-                            else if (m.scoreA === m.scoreB) drawn++;
-                            else lost++;
-                        } else if (m.teamB === team.id) {
-                            played++; gf += m.scoreB; ga += m.scoreA;
-                            if (m.scoreB > m.scoreA) won++;
-                            else if (m.scoreB === m.scoreA) drawn++;
-                            else lost++;
-                        }
+                const stats = tData.map(team => {
+                    const teamMatches = mData.filter(m => m.isCompleted && (m.teamA === team.id || m.teamB === team.id));
+                    let played = teamMatches.length;
+                    let wins = 0, draws = 0, losses = 0, gf = 0, ga = 0;
+
+                    teamMatches.forEach(m => {
+                        const isTeamA = m.teamA === team.id;
+                        const scoreMe = isTeamA ? m.scoreA : m.scoreB;
+                        const scoreThem = isTeamA ? m.scoreB : m.scoreA;
+
+                        gf += scoreMe;
+                        ga += scoreThem;
+
+                        if (scoreMe > scoreThem) wins++;
+                        else if (scoreMe === scoreThem) draws++;
+                        else losses++;
                     });
-                    return { id: team.id, name: team.name, logoUrl: team.logoUrl, played, won, drawn, lost, gf, ga, gd: gf - ga, pts: (won * 3) + drawn };
+
+                    return {
+                        ...team,
+                        played, wins, draws, losses, gf, ga,
+                        gd: gf - ga,
+                        pts: (wins * 3) + draws
+                    };
                 });
-                setStats(teamStats.sort((a, b) => b.pts - a.pts || b.gd - a.gd || b.gf - a.gf));
+
+                setTeams(stats.sort((a, b) => b.pts - a.pts || b.gd - a.gd || b.gf - a.gf));
             } catch (err) {
                 setError("Failed to load leaderboard.");
             } finally {
@@ -47,116 +55,115 @@ const Leaderboard = () => {
     if (loading) return <Loading />;
     if (error) return <ErrorMessage message={error} />;
 
-    const getRankBadge = (idx) => {
-        if (idx === 0) return "🥇";
-        if (idx === 1) return "🥈";
-        if (idx === 2) return "🥉";
-        return idx + 1;
-    };
-
     return (
-        <div className="space-y-12 animate-fadeIn pb-20">
+        <div className="space-y-12 animate-fadeIn pb-20 px-4 md:px-0">
             <div className="flex flex-col md:flex-row justify-between items-center gap-6 border-b border-white/10 pb-8">
                 <div className="text-center md:text-left space-y-2">
-                    <p className="text-blue-500 font-black uppercase tracking-[0.3em] text-xs">League Standings</p>
-                    <h1 className="text-5xl font-black text-white italic tracking-tighter uppercase">LEADERBOARD</h1>
+                    <p className="text-blue-500 font-black uppercase tracking-[0.3em] text-[10px] md:text-xs">League Standings</p>
+                    <h1 className="text-3xl md:text-5xl font-black text-white italic tracking-tighter uppercase leading-none">LEADERBOARD</h1>
                 </div>
-                <div className="flex items-center space-x-4">
+                <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
                     <button 
                         onClick={() => setPosterMode(!posterMode)}
-                        className={`px-6 py-3 rounded-xl font-black uppercase tracking-tighter transition-all shadow-xl ${posterMode ? 'bg-white text-slate-950 hover:bg-gray-100' : 'bg-slate-900 text-white border border-white/20'}`}
+                        className={`w-full sm:w-auto px-6 py-3 rounded-xl font-black uppercase tracking-tighter transition-all shadow-xl ${posterMode ? 'bg-white text-slate-950 hover:bg-gray-100' : 'bg-slate-900 text-white border border-white/20'}`}
                     >
                         {posterMode ? "Switch to Website View" : "✨ Poster Mode"}
                     </button>
-                    {posterMode && <DownloadButton elementId="standings-poster" filename="bcl-standings" />}
+                    {posterMode && <DownloadButton elementId="table-poster" filename="bcl-standings" />}
                 </div>
             </div>
 
             {posterMode ? (
-                <PosterLayout id="standings-poster">
-                    <PosterHeader title="LEAGUE TABLE" subtitle="SEASON 6 STANDINGS" />
-                    <div className="bg-white/5 backdrop-blur-md rounded-[40px] border border-white/10 overflow-hidden shadow-2xl flex-grow">
-                        <table className="w-full text-left">
-                            <thead>
-                                <tr className="bg-blue-600 text-[10px] font-black text-white uppercase tracking-[0.3em]">
-                                    <th className="px-6 py-8 text-center">Pos</th>
-                                    <th className="px-6 py-8">Club</th>
-                                    <th className="px-4 py-8 text-center">PL</th>
-                                    <th className="px-4 py-8 text-center">W</th>
-                                    <th className="px-4 py-8 text-center">D</th>
-                                    <th className="px-4 py-8 text-center">L</th>
-                                    <th className="px-4 py-8 text-center">GD</th>
-                                    <th className="px-8 py-8 text-center bg-white/20">PTS</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-white/5">
-                                {stats.slice(0, 8).map((team, idx) => (
-                                    <tr key={team.id} className={idx === 0 ? "bg-blue-600/10" : ""}>
-                                        <td className="px-6 py-6 text-center font-black text-3xl italic text-gray-500">
-                                            {getRankBadge(idx)}
-                                        </td>
-                                        <td className="px-6 py-6">
-                                            <div className="flex items-center space-x-6">
-                                                <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center p-2 border border-white/10 shadow-2xl shrink-0">
-                                                    {team.logoUrl ? <img src={team.logoUrl} className="w-full h-full object-contain" alt="" /> : <span className="text-2xl">🛡️</span>}
-                                                </div>
-                                                <span className="font-black text-2xl uppercase tracking-tighter text-white truncate max-w-[250px] italic">{team.name}</span>
+                <div className="flex justify-center items-center py-4 overflow-hidden w-full">
+                    <div className="relative transform scale-[0.3] sm:scale-[0.5] md:scale-[0.7] lg:scale-100 origin-center my-[-300px] sm:my-[-200px] md:my-[-100px] lg:my-0">
+                        <PosterLayout id="table-poster">
+                            <PosterHeader title="LEAGUE TABLE" subtitle="SEASON 6 STANDINGS" color="blue" />
+                            <div className="flex-grow flex flex-col w-full px-10">
+                                <div className="bg-blue-600 rounded-t-3xl p-6 flex items-center font-black text-white italic tracking-tighter text-xl uppercase">
+                                    <div className="w-16">Pos</div>
+                                    <div className="flex-grow">Club</div>
+                                    <div className="flex items-center space-x-12 text-center w-80">
+                                        <div className="w-12">PL</div>
+                                        <div className="w-12">W</div>
+                                        <div className="w-12">D</div>
+                                        <div className="w-12">L</div>
+                                        <div className="w-12">GD</div>
+                                    </div>
+                                    <div className="w-24 text-right">Pts</div>
+                                </div>
+                                <div className="flex-grow bg-white/10 rounded-b-3xl border border-white/10 overflow-hidden">
+                                    {teams.slice(0, 5).map((team, idx) => (
+                                        <div key={team.id} className={`flex items-center p-6 border-b border-white/5 font-black italic tracking-tighter text-3xl uppercase ${idx % 2 === 0 ? 'bg-white/5' : ''}`}>
+                                            <div className="w-16 text-gray-500">
+                                                {idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : idx + 1}
                                             </div>
-                                        </td>
-                                        <td className="px-4 py-6 text-center font-bold text-2xl text-gray-400">{team.played}</td>
-                                        <td className="px-4 py-6 text-center font-bold text-xl text-white">{team.won}</td>
-                                        <td className="px-4 py-6 text-center font-bold text-xl text-gray-500">{team.drawn}</td>
-                                        <td className="px-4 py-6 text-center font-bold text-xl text-gray-500">{team.lost}</td>
-                                        <td className={`px-4 py-6 text-center font-black text-2xl ${team.gd >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                                            {team.gd > 0 ? `+${team.gd}` : team.gd}
-                                        </td>
-                                        <td className="px-8 py-6 text-center font-black text-4xl text-white bg-white/5 italic">
-                                            {team.pts}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                            <div className="flex-grow flex items-center space-x-6">
+                                                <div className="w-16 h-16 bg-white rounded-xl flex items-center justify-center p-2 shadow-xl shrink-0">
+                                                    {team.logoUrl ? <img src={team.logoUrl} className="w-full h-full object-contain" alt="" /> : "🛡️"}
+                                                </div>
+                                                <span className="text-white truncate max-w-[400px]">{team.name}</span>
+                                            </div>
+                                            <div className="flex items-center space-x-12 text-center w-80 text-gray-400">
+                                                <div className="w-12">{team.played}</div>
+                                                <div className="w-12">{team.wins}</div>
+                                                <div className="w-12">{team.draws}</div>
+                                                <div className="w-12">{team.losses}</div>
+                                                <div className={`w-12 ${team.gd > 0 ? 'text-green-400' : team.gd < 0 ? 'text-red-400' : ''}`}>
+                                                    {team.gd > 0 ? `+${team.gd}` : team.gd}
+                                                </div>
+                                            </div>
+                                            <div className="w-24 text-right text-white text-5xl">{team.pts}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </PosterLayout>
                     </div>
-                </PosterLayout>
+                </div>
             ) : (
-                <div className="bg-slate-900 rounded-[40px] border border-white/5 overflow-hidden shadow-2xl animate-fadeIn">
+                <div className="bg-slate-900/50 border border-white/10 rounded-[40px] overflow-hidden shadow-2xl">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left">
-                            <thead>
-                                <tr className="bg-slate-950 text-[10px] font-black text-gray-500 uppercase tracking-widest border-b border-white/5">
-                                    <th className="px-6 py-6 text-center">Pos</th>
-                                    <th className="px-6 py-6">Club</th>
-                                    <th className="px-4 py-6 text-center">Pl</th>
+                            <thead className="bg-blue-600 text-white font-black italic uppercase tracking-tighter text-sm md:text-base">
+                                <tr>
+                                    <th className="px-4 md:px-8 py-6">Pos</th>
+                                    <th className="px-4 md:px-8 py-6">Team</th>
+                                    <th className="px-4 py-6 text-center">PL</th>
                                     <th className="px-4 py-6 text-center">W</th>
                                     <th className="px-4 py-6 text-center">D</th>
                                     <th className="px-4 py-6 text-center">L</th>
-                                    <th className="px-4 py-6 text-center font-black text-white">GD</th>
-                                    <th className="px-6 py-6 text-center bg-blue-600/10 font-black text-blue-400 border-l border-white/5">Pts</th>
+                                    <th className="px-4 py-6 text-center hidden md:table-cell">GF</th>
+                                    <th className="px-4 py-6 text-center hidden md:table-cell">GA</th>
+                                    <th className="px-4 py-6 text-center">GD</th>
+                                    <th className="px-4 md:px-8 py-6 text-center bg-blue-700">PTS</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-white/5">
-                                {stats.map((team, idx) => (
-                                    <tr key={team.id} className="hover:bg-white/5 transition-colors group">
-                                        <td className="px-6 py-5 text-center font-black text-xl italic text-gray-400 group-hover:text-blue-500 transition-colors">
-                                            {getRankBadge(idx)}
+                                {teams.map((team, idx) => (
+                                    <tr key={team.id} className="group hover:bg-white/5 transition-colors">
+                                        <td className="px-4 md:px-8 py-6">
+                                            <span className="text-xl md:text-2xl font-black italic text-gray-500">
+                                                {idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : idx + 1}
+                                            </span>
                                         </td>
-                                        <td className="px-6 py-5">
-                                            <div className="flex items-center space-x-4">
-                                                <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center p-2 border border-white/10 shadow-inner shrink-0">
-                                                    {team.logoUrl ? <img src={team.logoUrl} className="w-full h-full object-contain" alt="" /> : <span className="text-xl">🛡️</span>}
+                                        <td className="px-4 md:px-8 py-6">
+                                            <div className="flex items-center space-x-4 md:space-x-6">
+                                                <div className="w-10 h-10 md:w-14 md:h-14 bg-white rounded-xl flex items-center justify-center p-2 shadow-xl shrink-0">
+                                                    {team.logoUrl ? <img src={team.logoUrl} className="w-full h-full object-contain" alt="" /> : "🛡️"}
                                                 </div>
-                                                <span className="font-black text-lg md:text-xl uppercase tracking-tighter truncate max-w-[150px] md:max-w-none text-white italic">{team.name}</span>
+                                                <span className="text-white font-black italic uppercase tracking-tighter text-sm md:text-xl truncate max-w-[120px] md:max-w-none">{team.name}</span>
                                             </div>
                                         </td>
-                                        <td className="px-4 py-5 text-center font-bold text-gray-400">{team.played}</td>
-                                        <td className="px-4 py-5 text-center font-bold text-white">{team.won}</td>
-                                        <td className="px-4 py-5 text-center font-bold text-gray-500">{team.drawn}</td>
-                                        <td className="px-4 py-5 text-center font-bold text-gray-500">{team.lost}</td>
-                                        <td className={`px-4 py-5 text-center font-black ${team.gd >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                        <td className="px-4 py-6 text-center font-bold text-gray-400">{team.played}</td>
+                                        <td className="px-4 py-6 text-center font-bold text-gray-400">{team.wins}</td>
+                                        <td className="px-4 py-6 text-center font-bold text-gray-400">{team.draws}</td>
+                                        <td className="px-4 py-6 text-center font-bold text-gray-400">{team.losses}</td>
+                                        <td className="px-4 py-6 text-center font-bold text-gray-500 hidden md:table-cell">{team.gf}</td>
+                                        <td className="px-4 py-6 text-center font-bold text-gray-500 hidden md:table-cell">{team.ga}</td>
+                                        <td className={`px-4 py-6 text-center font-black italic ${team.gd > 0 ? 'text-green-400' : team.gd < 0 ? 'text-red-400' : 'text-gray-400'}`}>
                                             {team.gd > 0 ? `+${team.gd}` : team.gd}
                                         </td>
-                                        <td className="px-6 py-5 text-center font-black text-3xl bg-blue-600/5 border-l border-white/5 text-white group-hover:bg-blue-600/20 transition-colors italic">
+                                        <td className="px-4 md:px-8 py-6 text-center text-xl md:text-3xl font-black italic text-white bg-blue-600/20">
                                             {team.pts}
                                         </td>
                                     </tr>
