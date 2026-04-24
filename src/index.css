@@ -1,0 +1,50 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --navy-dark: #060E20;
+  --navy-light: #0B162E;
+  --primary: #00F0FF;
+  --primary-dim: #00A3AF;
+  --slate-gray: #475569;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  background-color: var(--navy-dark);
+  color: white;
+  -webkit-font-smoothing: antialiased;
+}
+
+@layer components {
+  .pl-button-primary {
+    @apply bg-primary text-navy-dark px-6 py-2 rounded-md font-black uppercase tracking-tighter hover:scale-[1.03] active:scale-95 transition-all shadow-lg hover:shadow-primary/20;
+  }
+  
+  .pl-table-row {
+    @apply hover:bg-white/5 transition-colors cursor-default border-b border-white/5;
+  }
+
+  .animate-fadeIn {
+    animation: fadeIn 0.5s ease-out forwards;
+  }
+
+  .hover-scale {
+    @apply hover:scale-[1.03] transition-transform duration-200;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: var(--navy-dark); }
+::-webkit-scrollbar-thumb { background: var(--slate-gray); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: var(--primary); }
