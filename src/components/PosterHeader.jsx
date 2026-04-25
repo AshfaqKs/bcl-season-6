@@ -8,7 +8,9 @@ const PosterHeader = ({ title, subtitle, color = "green" }) => {
         blue: { text: "text-blue-400", border: "border-blue-500" },
         cyan: { text: "text-cyan-400", border: "border-cyan-500" },
         emerald: { text: "text-emerald-400", border: "border-emerald-500" },
-        gold: { text: "text-yellow-400", border: "border-yellow-500" }
+        gold: { text: "text-yellow-400", border: "border-yellow-500" },
+        yellow: { text: "text-yellow-400", border: "border-yellow-500" },
+        red: { text: "text-red-400", border: "border-red-500" }
     };
 
     const theme = colorMap[color] || colorMap.green;

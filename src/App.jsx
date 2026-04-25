@@ -12,6 +12,7 @@ import Leaderboard from "./pages/Leaderboard";
 import TopScorers from "./pages/TopScorers";
 import TopAssists from "./pages/TopAssists";
 import CleanSheets from "./pages/CleanSheets";
+import Discipline from "./pages/Discipline";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
 
@@ -48,6 +49,7 @@ function App() {
             <Route path="/top-scorers" element={<TopScorers />} />
             <Route path="/top-assists" element={<TopAssists />} />
             <Route path="/clean-sheets" element={<CleanSheets />} />
+            <Route path="/discipline" element={<Discipline />} />
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
           </Routes>

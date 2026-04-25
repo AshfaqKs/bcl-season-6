@@ -21,6 +21,7 @@ const Navbar = () => {
         { name: 'Goals', path: '/top-scorers' },
         { name: 'Assists', path: '/top-assists' },
         { name: 'Walls', path: '/clean-sheets' },
+        { name: 'Cards', path: '/discipline' },
     ];
 
     const isActive = (path) => location.pathname === path;
