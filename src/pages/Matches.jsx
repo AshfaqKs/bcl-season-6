@@ -107,17 +107,17 @@ const Matches = () => {
                                 <div className="relative transform scale-[0.3] sm:scale-[0.5] md:scale-[0.7] lg:scale-100 origin-center my-[-300px] sm:my-[-200px] md:my-[-100px] lg:my-0">
                                     <PosterLayout id={`poster-${date.replace(/\s+/g, '-')}`}>
                                         <PosterHeader title="MATCHDAY" subtitle={date.toUpperCase()} color="blue" />
-                                        <div className="flex-grow flex flex-col justify-center space-y-6 w-full px-10">
+                                        <div className="flex-grow flex flex-col justify-start space-y-3 w-full px-10 pt-2">
                                             {groupedMatches[date].slice(0, 4).map(match => {
                                                 const teamA = teams.find(t => t.id === match.teamA);
                                                 const teamB = teams.find(t => t.id === match.teamB);
                                                 return (
-                                                    <div key={match.id} className="bg-white/10 border border-white/10 rounded-[40px] p-8 flex items-center justify-between relative overflow-hidden h-[180px] shadow-2xl">
-                                                        <div className="flex-1 flex flex-col items-center justify-center space-y-4">
-                                                            <div className="w-24 h-24 bg-white rounded-2xl flex items-center justify-center p-3 border-2 border-white/10 shadow-[0_0_30px_rgba(0,0,0,0.3)] shrink-0">
-                                                                {teamA?.logoUrl ? <img src={teamA.logoUrl} className="w-full h-full object-contain" alt="" /> : <span className="text-4xl">🛡️</span>}
+                                                    <div key={match.id} className="bg-white/10 border border-white/10 rounded-[40px] p-5 flex items-center justify-between relative overflow-hidden h-[155px] shadow-2xl">
+                                                        <div className="flex-1 flex flex-col items-center justify-center space-y-2">
+                                                            <div className="w-20 h-20 bg-white rounded-2xl flex items-center justify-center p-3 border-2 border-white/10 shadow-[0_0_30px_rgba(0,0,0,0.3)] shrink-0">
+                                                                {teamA?.logoUrl ? <img src={teamA.logoUrl} className="w-full h-full object-contain" alt="" /> : <span className="text-3xl">🛡️</span>}
                                                             </div>
-                                                            <span className="text-xl font-black text-white uppercase tracking-tighter w-full text-center leading-[1] italic pr-2 h-6 flex items-center justify-center">{teamA?.name}</span>
+                                                            <span className="text-lg font-black text-white uppercase tracking-tighter w-full text-center leading-[1] italic pr-2 h-5 flex items-center justify-center">{teamA?.name}</span>
                                                         </div>
 
                                                         <div className="mx-8 flex flex-col items-center justify-center min-w-[180px] h-full">
@@ -135,11 +135,11 @@ const Matches = () => {
                                                             )}
                                                         </div>
 
-                                                        <div className="flex-1 flex flex-col items-center justify-center space-y-4">
-                                                            <div className="w-24 h-24 bg-white rounded-2xl flex items-center justify-center p-3 border-2 border-white/10 shadow-[0_0_30px_rgba(0,0,0,0.3)] shrink-0">
-                                                                {teamB?.logoUrl ? <img src={teamB.logoUrl} className="w-full h-full object-contain" alt="" /> : <span className="text-4xl">🛡️</span>}
+                                                        <div className="flex-1 flex flex-col items-center justify-center space-y-2">
+                                                            <div className="w-20 h-20 bg-white rounded-2xl flex items-center justify-center p-3 border-2 border-white/10 shadow-[0_0_30px_rgba(0,0,0,0.3)] shrink-0">
+                                                                {teamB?.logoUrl ? <img src={teamB.logoUrl} className="w-full h-full object-contain" alt="" /> : <span className="text-3xl">🛡️</span>}
                                                             </div>
-                                                            <span className="text-xl font-black text-white uppercase tracking-tighter w-full text-center leading-[1] italic pr-2 h-6 flex items-center justify-center">{teamB?.name}</span>
+                                                            <span className="text-lg font-black text-white uppercase tracking-tighter w-full text-center leading-[1] italic pr-2 h-5 flex items-center justify-center">{teamB?.name}</span>
                                                         </div>
                                                     </div>
                                                 );
