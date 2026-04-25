@@ -174,6 +174,29 @@ const AdminDashboard = () => {
         } catch (err) { setError(`Result Save Failed: ${err.message}`); }
     };
 
+    const handleRevertResult = async (matchId) => {
+        if (!window.confirm("Revert this result back to a fixture? This will wipe scores and events.")) return;
+        setUploading(true);
+        try {
+            await updateDoc(doc(db, "matches", matchId), {
+                isCompleted: false,
+                scoreA: 0,
+                scoreB: 0,
+                events: [],
+                teamAPlayers: [],
+                teamBPlayers: [],
+                manOfTheMatchPlayerId: ""
+            });
+            await recomputeStats();
+            alert("Result reverted to fixture!");
+            fetchData();
+        } catch (err) {
+            setError(`Revert Failed: ${err.message}`);
+        } finally {
+            setUploading(false);
+        }
+    };
+
     const startEdit = (type, item) => {
         setEditingItem(item);
         if (type === 'team') {
@@ -505,8 +528,9 @@ const AdminDashboard = () => {
                                                     <div className="text-left w-44 font-black text-2xl text-slate-900 uppercase tracking-tighter">{teams.find(t => t.id === m.teamB)?.name}</div>
                                                 </div>
                                             </div>
-                                            <div className="flex space-x-6 opacity-0 group-hover:opacity-100 transition-all">
+                                            <div className="flex space-x-6 opacity-0 group-hover:opacity-100 transition-all items-center">
                                                 <button onClick={() => { setResultMatch(m); setMatchEvents(m.events || []); }} className="text-blue-600 font-black text-xs uppercase tracking-widest hover:underline">Edit Report</button>
+                                                <button onClick={() => handleRevertResult(m.id)} className="bg-orange-50 text-orange-600 px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest border border-orange-100 hover:bg-orange-600 hover:text-white transition-all">Revert to Fixture</button>
                                                 <button onClick={() => handleDelete("matches", m.id)} className="text-red-500 font-black text-3xl px-2 hover:scale-125 transition-transform">×</button>
                                             </div>
                                         </div>
