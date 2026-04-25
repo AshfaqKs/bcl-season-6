@@ -33,8 +33,7 @@ const Discipline = () => {
 
     const sortedPlayers = [...players]
         .filter(p => (cardType === "yellow" ? p.yellow : p.red) > 0)
-        .sort((a, b) => (cardType === "yellow" ? b.yellow - a.yellow : b.red - a.red))
-        .slice(0, 10);
+        .sort((a, b) => (cardType === "yellow" ? b.yellow - a.yellow : b.red - a.red));
 
     const getRankBadge = (idx) => {
         if (idx === 0) return "🥇";

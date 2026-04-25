@@ -17,7 +17,7 @@ const CleanSheets = () => {
         const fetchData = async () => {
             try {
                 const [pData, tData] = await Promise.all([getPlayers(), getTeams()]);
-                const gks = pData.filter(p => p.position === "GK").sort((a, b) => b.cleanSheets - a.cleanSheets).slice(0, 5);
+                const gks = pData.filter(p => p.position === "GK" && p.cleanSheets > 0).sort((a, b) => b.cleanSheets - a.cleanSheets);
                 setPlayers(gks);
                 setTeams(tData);
             } catch (err) {
@@ -66,7 +66,7 @@ const CleanSheets = () => {
                         <PosterLayout id="gk-poster">
                             <PosterHeader title="GOLDEN GLOVES" subtitle="CLEAN SHEETS UPDATE" color="emerald" />
                             <div className="flex flex-col space-y-3 flex-grow w-full px-10 -mt-10 justify-start pt-4">
-                                {players.map((p, idx) => (
+                                {players.slice(0, 5).map((p, idx) => (
                                     <div 
                                         key={p.id} 
                                         className="relative flex items-center p-5 rounded-[35px] overflow-hidden bg-white/10 border border-white/10 h-[125px] shadow-2xl"
@@ -100,7 +100,7 @@ const CleanSheets = () => {
                 </div>
             ) : (
                 <div className="grid gap-6">
-                    {players.map((p, idx) => (
+                    {players.length > 0 ? players.map((p, idx) => (
                         <Link 
                             key={p.id} 
                             to={`/player/${p.id}`}
@@ -128,7 +128,11 @@ const CleanSheets = () => {
                                 <p className="text-[8px] md:text-[10px] font-black text-gray-600 uppercase tracking-widest">Clean Sheets</p>
                              </div>
                         </Link>
-                    ))}
+                    )) : (
+                        <div className="bg-slate-900 border border-white/5 rounded-[40px] p-20 text-center">
+                            <p className="text-gray-500 font-black uppercase tracking-[0.3em]">No clean sheets recorded yet.</p>
+                        </div>
+                    )}
                 </div>
             )}
         </div>

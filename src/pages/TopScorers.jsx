@@ -17,7 +17,7 @@ const TopScorers = () => {
         const fetchData = async () => {
             try {
                 const [pData, tData] = await Promise.all([getPlayers(), getTeams()]);
-                setPlayers(pData.sort((a, b) => b.goals - a.goals).slice(0, 5));
+                setPlayers(pData.filter(p => p.goals > 0).sort((a, b) => b.goals - a.goals));
                 setTeams(tData);
             } catch (err) {
                 setError("Failed to load scorers.");
@@ -67,7 +67,7 @@ const TopScorers = () => {
                         <PosterLayout id="scorers-poster">
                             <PosterHeader title="GOLDEN BOOT" subtitle="TOP SCORERS UPDATE" color="green" />
                             <div className="flex flex-col space-y-3 flex-grow w-full px-10 -mt-10 justify-start pt-4">
-                                {players.map((p, idx) => (
+                                {players.slice(0, 5).map((p, idx) => (
                                     <div 
                                         key={p.id} 
                                         className="relative flex items-center p-5 rounded-[35px] overflow-hidden bg-white/10 border border-white/10 h-[125px] shadow-2xl"
@@ -101,7 +101,7 @@ const TopScorers = () => {
                 </div>
             ) : (
                 <div className="grid gap-6">
-                    {players.map((p, idx) => (
+                    {players.length > 0 ? players.map((p, idx) => (
                         <Link 
                             key={p.id} 
                             to={`/player/${p.id}`}
@@ -129,7 +129,11 @@ const TopScorers = () => {
                                 <p className="text-[8px] md:text-[10px] font-black text-gray-600 uppercase tracking-widest">Goals</p>
                              </div>
                         </Link>
-                    ))}
+                    )) : (
+                        <div className="bg-slate-900 border border-white/5 rounded-[40px] p-20 text-center">
+                            <p className="text-gray-500 font-black uppercase tracking-[0.3em]">No goals recorded yet.</p>
+                        </div>
+                    )}
                 </div>
             )}
         </div>
