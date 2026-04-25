@@ -466,7 +466,7 @@ const AdminDashboard = () => {
                                         <div key={m.id} className="flex justify-between items-center p-10 bg-white rounded-[40px] border border-gray-100 hover:border-blue-400 transition-all group shadow-sm hover:shadow-xl">
                                             <div className="flex items-center space-x-12">
                                                 <div className="text-center bg-gray-50 p-5 rounded-3xl min-w-[140px] border border-gray-100 shadow-inner">
-                                                    <p className="text-[10px] font-black text-gray-400 uppercase mb-1">{new Date(m.date).toLocaleDateString([], { weekday: 'short' })}</p>
+                                                    <p className="text-[10px] font-black text-gray-400 uppercase mb-1">{new Date(m.date).toLocaleDateString([], { weekday: 'short', day: 'numeric', month: 'short' })}</p>
                                                     <p className="text-2xl font-black text-slate-900">{new Date(m.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}</p>
                                                 </div>
                                                 <div className="flex items-center space-x-10">
@@ -491,7 +491,10 @@ const AdminDashboard = () => {
                                     {matches.filter(m => m.isCompleted).sort((a, b) => new Date(b.date) - new Date(a.date)).map(m => (
                                         <div key={m.id} className="flex justify-between items-center p-10 bg-white rounded-[40px] shadow-md border border-gray-100 group hover:shadow-xl transition-all">
                                             <div className="flex items-center space-x-12">
-                                                <div className="text-xs font-black text-gray-400 uppercase tracking-widest w-24 text-center">{new Date(m.date).toLocaleDateString()}</div>
+                                                <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest min-w-[120px] text-center bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                                                    <div>{new Date(m.date).toLocaleDateString([], { day: 'numeric', month: 'short' })}</div>
+                                                    <div className="text-slate-900 mt-1">{new Date(m.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}</div>
+                                                </div>
                                                 <div className="flex items-center space-x-10">
                                                     <div className="text-right w-44 font-black text-2xl text-slate-900 uppercase tracking-tighter">{teams.find(t => t.id === m.teamA)?.name}</div>
                                                     <div className="flex items-center space-x-4 bg-slate-900 text-white px-8 py-4 rounded-[24px] font-black text-4xl italic shadow-2xl border-b-4 border-blue-600">
