@@ -43,11 +43,14 @@ const PlayerProfile = () => {
                     <span className="text-xl">←</span>
                     <span className="text-xs font-black uppercase tracking-widest">Back to Squads</span>
                 </Link>
+                
+                {/* POSTER DOWNLOAD COMMENTED OUT
                 <DownloadButton 
                     elementId="player-card" 
                     filename={`bcl-${player.name.replace(/\s+/g, '-')}`} 
                     label="Download Signature Card"
                 />
+                */}
             </div>
 
             {/* SIGNATURE CARD POSTER - RESPONSIVE CONTAINER */}

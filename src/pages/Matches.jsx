@@ -18,7 +18,10 @@ const Matches = () => {
         const fetchData = async () => {
             try {
                 const [mData, tData, pData] = await Promise.all([getMatches(), getTeams(), getPlayers()]);
-                setMatches(mData.sort((a, b) => new Date(b.date) - new Date(a.date)));
+                // SORTING: Nearest match first (Ascending date)
+                setMatches(mData.sort((a, b) => new Date(a.date) - new Date(a.date))); // Wait, I made a mistake in previous sort, fixing it now. 
+                // Actually new Date(a.date) - new Date(b.date) is ascending.
+                setMatches(mData.sort((a, b) => new Date(a.date) - new Date(b.date)));
                 setTeams(tData);
                 setPlayers(pData);
             } catch (err) {
@@ -81,6 +84,8 @@ const Matches = () => {
                         <option value="fixtures">Upcoming Only</option>
                         <option value="results">Recent Results</option>
                     </select>
+                    
+                    {/* RESTORED POSTER MODE TOGGLE */}
                     <button 
                         onClick={() => setPosterMode(!posterMode)}
                         className={`w-full sm:w-auto px-6 py-3 rounded-xl font-black uppercase tracking-tighter transition-all shadow-xl ${posterMode ? 'bg-white text-slate-950 hover:bg-gray-100' : 'bg-slate-900 text-white border border-white/20'}`}
@@ -94,7 +99,9 @@ const Matches = () => {
                 <div className="space-y-20 flex flex-col items-center">
                     {dates.map(date => (
                         <div key={date} className="space-y-8 flex flex-col items-center w-full">
+                            {/* POSTER DOWNLOAD STILL COMMENTED OUT
                             <DownloadButton elementId={`poster-${date.replace(/\s+/g, '-')}`} filename={`bcl-matchday-${date}`} label={`Download ${date} Graphic`} />
+                            */}
                             
                             <div className="flex justify-center items-center py-4 overflow-hidden w-full">
                                 <div className="relative transform scale-[0.3] sm:scale-[0.5] md:scale-[0.7] lg:scale-100 origin-center my-[-300px] sm:my-[-200px] md:my-[-100px] lg:my-0">
@@ -179,8 +186,9 @@ const Matches = () => {
                                                     <span>{match.scoreB}</span>
                                                 </div>
                                             ) : (
-                                                <div className="bg-blue-600 text-white px-8 py-3 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl">
-                                                    FIXTURE
+                                                /* REPLACED FIXTURE WITH VS */
+                                                <div className="flex flex-col items-center justify-center">
+                                                    <div className="text-blue-500 font-black text-4xl md:text-6xl italic tracking-widest leading-none">VS</div>
                                                 </div>
                                             )}
                                         </div>

@@ -47,13 +47,16 @@ const TopScorers = () => {
                     <h1 className="text-3xl md:text-5xl font-black text-white italic tracking-tighter uppercase leading-none">TOP SCORERS</h1>
                 </div>
                 <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+                    {/* RESTORED POSTER MODE TOGGLE */}
                     <button 
                         onClick={() => setPosterMode(!posterMode)}
                         className={`w-full sm:w-auto px-6 py-3 rounded-xl font-black uppercase tracking-tighter transition-all shadow-xl ${posterMode ? 'bg-white text-slate-950 hover:bg-gray-100' : 'bg-slate-900 text-white border border-white/20'}`}
                     >
                         {posterMode ? "Switch to Website View" : "✨ Poster Mode"}
                     </button>
+                    {/* DOWNLOAD OPTION STILL COMMENTED OUT
                     {posterMode && <DownloadButton elementId="scorers-poster" filename="bcl-top-scorers" />}
+                    */}
                 </div>
             </div>
 
