@@ -78,23 +78,44 @@ const Teams = () => {
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
                             {captain && (
-                                <div className="col-span-1 sm:col-span-2 lg:col-span-2">
-                                    <Link to={`/player/${captain.id}`} className="bg-gradient-to-br from-blue-600/30 to-slate-900 p-[2px] rounded-[32px] shadow-[0_0_30px_rgba(37,99,235,0.1)] group block">
-                                        <div className="bg-slate-900 rounded-[30px] p-6 flex items-center space-x-8 relative overflow-hidden">
-                                            <div className="absolute top-4 right-4 bg-blue-600 text-white px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-xl">Captain</div>
-                                            <div className="w-24 h-24 md:w-40 md:h-40 rounded-2xl overflow-hidden border-2 border-white/10 flex-shrink-0 bg-slate-800 shadow-2xl">
-                                                {captain.photoUrl ? <img src={captain.photoUrl} className="w-full h-full object-cover group-hover:scale-105 transition-all duration-500" alt="" /> : <div className="w-full h-full flex items-center justify-center text-5xl">👤</div>}
-                                            </div>
-                                            <div className="flex-grow">
-                                                <h3 className="text-3xl md:text-4xl font-black text-white uppercase tracking-tighter group-hover:text-blue-400 transition-colors italic">{captain.name}</h3>
-                                                <div className="flex items-center space-x-4 mt-2">
-                                                    <span className="text-blue-400 font-black text-xs uppercase tracking-widest">{captain.position}</span>
-                                                    <span className="text-gray-500 font-bold text-xs uppercase tracking-widest">Age: {captain.age || "???"}</span>
-                                                </div>
+                                <Link to={`/player/${captain.id}`} className="relative group block">
+                                    {/* PREMIUM CAPTAIN BORDER & GLOW */}
+                                    <div className="absolute -inset-[2px] bg-gradient-to-br from-yellow-400 via-yellow-600 to-yellow-400 rounded-[34px] blur-[2px] group-hover:blur-[8px] transition-all opacity-70 group-hover:opacity-100"></div>
+                                    
+                                    <div className="relative bg-slate-950 border-2 border-yellow-500/50 rounded-[32px] overflow-hidden shadow-2xl transition-all group-hover:-translate-y-2">
+                                        {/* CAPTAIN TAG */}
+                                        <div className="absolute top-4 right-4 z-20">
+                                            <div className="bg-slate-950 text-yellow-500 px-4 py-1.5 rounded-full font-black text-[10px] uppercase tracking-[0.2em] shadow-2xl border border-yellow-500/30">
+                                                Captain
                                             </div>
                                         </div>
-                                    </Link>
-                                </div>
+
+                                        <div className="aspect-[3/4] relative bg-slate-800 overflow-hidden">
+                                            {captain.photoUrl ? (
+                                                <img 
+                                                    src={captain.photoUrl} 
+                                                    className="w-full h-full object-cover group-hover:scale-110 transition-all duration-700" 
+                                                    alt={captain.name} 
+                                                />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center text-7xl opacity-20">👤</div>
+                                            )}
+                                            {/* BOTTOM FADE FOR NAME READABILITY */}
+                                            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-80"></div>
+                                        </div>
+
+                                        <div className="p-6 bg-slate-950 relative border-t border-yellow-500/20">
+                                            <h3 className="text-2xl font-black text-white uppercase tracking-tighter italic group-hover:text-yellow-400 transition-colors">{captain.name}</h3>
+                                            <div className="flex justify-between items-center mt-3">
+                                                <div className="flex items-center space-x-2">
+                                                    <span className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></span>
+                                                    <p className="text-[10px] font-black text-yellow-500 uppercase tracking-[0.2em]">{captain.position}</p>
+                                                </div>
+                                                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Age: {captain.age || "??"}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </Link>
                             )}
 
                             {restOfSquad.map(p => (
