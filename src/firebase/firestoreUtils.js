@@ -55,17 +55,6 @@ export const recomputeStats = async () => {
             if (playerStats[pid]) playerStats[pid].matches += 1;
         });
 
-        if (m.scoreB === 0) {
-            (m.teamAPlayers || []).forEach(pid => {
-                if (playerStats[pid]) playerStats[pid].cleanSheets += 1;
-            });
-        }
-        if (m.scoreA === 0) {
-            (m.teamBPlayers || []).forEach(pid => {
-                if (playerStats[pid]) playerStats[pid].cleanSheets += 1;
-            });
-        }
-
         (m.events || []).forEach(e => {
             if (e.type === "goal") {
                 if (playerStats[e.playerId]) playerStats[e.playerId].goals += 1;
@@ -78,6 +67,8 @@ export const recomputeStats = async () => {
                 if (playerStats[e.playerId]) playerStats[e.playerId].red += 1;
             } else if (e.type === "double_yellow") {
                 if (playerStats[e.playerId]) playerStats[e.playerId].red += 1;
+            } else if (e.type === "clean_sheet") {
+                if (playerStats[e.playerId]) playerStats[e.playerId].cleanSheets += 1;
             }
         });
     });

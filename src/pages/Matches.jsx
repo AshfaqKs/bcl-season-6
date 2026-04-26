@@ -65,6 +65,7 @@ const Matches = () => {
         if (type === 'yellow') return '🟨';
         if (type === 'double_yellow') return '🟨🟨';
         if (type === 'red') return '🟥';
+        if (type === 'clean_sheet') return '🧤';
         return '';
     };
 

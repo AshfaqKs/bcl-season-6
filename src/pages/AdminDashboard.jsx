@@ -449,12 +449,13 @@ const AdminDashboard = () => {
                                             <button type="button" onClick={() => setMatchEvents([...matchEvents, { type: 'yellow', playerId: '' }])} className="bg-yellow-400 text-slate-950 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg hover:scale-105 transition-transform">🟨 Yellow</button>
                                             <button type="button" onClick={() => setMatchEvents([...matchEvents, { type: 'double_yellow', playerId: '' }])} className="bg-orange-500 text-white px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg hover:scale-105 transition-transform">🟨🟨 Double Yellow</button>
                                             <button type="button" onClick={() => setMatchEvents([...matchEvents, { type: 'red', playerId: '' }])} className="bg-red-600 text-white px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg hover:scale-105 transition-transform">🟥 Red</button>
+                                            <button type="button" onClick={() => setMatchEvents([...matchEvents, { type: 'clean_sheet', playerId: '' }])} className="bg-emerald-600 text-white px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg hover:scale-105 transition-transform">🧤 Clean Sheet</button>
                                         </div>
                                     </div>
                                     <div className="space-y-4">
                                         {matchEvents.map((e, idx) => (
                                             <div key={idx} className="flex items-center space-x-4 bg-white p-5 rounded-2xl border border-gray-100 shadow-sm transition-all hover:border-blue-200">
-                                                <div className={`w-3 h-12 rounded-full shrink-0 ${e.type === 'goal' ? 'bg-blue-500' : e.type === 'yellow' ? 'bg-yellow-400' : e.type === 'double_yellow' ? 'bg-orange-500' : 'bg-red-600'}`}></div>
+                                                <div className={`w-3 h-12 rounded-full shrink-0 ${e.type === 'goal' ? 'bg-blue-500' : e.type === 'yellow' ? 'bg-yellow-400' : e.type === 'double_yellow' ? 'bg-orange-500' : e.type === 'red' ? 'bg-red-600' : 'bg-emerald-600'}`}></div>
                                                 <select className="flex-1 p-4 bg-gray-50 border border-gray-200 rounded-xl text-slate-900 font-bold text-sm outline-none focus:border-blue-500" required value={e.playerId} onChange={(ev) => { const n = [...matchEvents]; n[idx].playerId = ev.target.value; setMatchEvents(n); }}>
                                                     <option value="">Select Scorer / Recipient</option>
                                                     {players.filter(p => p.teamId === resultMatch.teamA || p.teamId === resultMatch.teamB).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
