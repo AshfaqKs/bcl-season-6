@@ -103,18 +103,14 @@ const PlayerProfile = () => {
                                     <div className="bg-slate-900 p-12 rounded-[50px] shadow-2xl border-4 border-blue-600/50 relative overflow-hidden">
                                         <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
                                         <p className="text-xs font-black text-blue-400 uppercase tracking-[0.4em] mb-10 opacity-60 leading-none">SEASON STATISTICS</p>
-                                        <div className="grid grid-cols-3 gap-6 text-white">
+                                        <div className="grid grid-cols-2 gap-6 text-white">
                                             <div className="text-center">
                                                 <p className="text-7xl font-black italic leading-none">{player.goals}</p>
                                                 <p className="text-[12px] font-black uppercase tracking-widest mt-4 text-gray-400 leading-none">Goals</p>
                                             </div>
-                                            <div className="text-center border-x border-white/10">
+                                            <div className="text-center border-l border-white/10">
                                                 <p className="text-7xl font-black italic leading-none">{player.assists}</p>
                                                 <p className="text-[12px] font-black uppercase tracking-widest mt-4 text-gray-400 leading-none">Assists</p>
-                                            </div>
-                                            <div className="text-center">
-                                                <p className="text-7xl font-black italic leading-none">{player.matches || 0}</p>
-                                                <p className="text-[12px] font-black uppercase tracking-widest mt-4 text-gray-400 leading-none">Apps</p>
                                             </div>
                                         </div>
                                     </div>

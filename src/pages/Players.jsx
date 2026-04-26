@@ -99,18 +99,14 @@ const Players = () => {
                                 </p>
                             </div>
 
-                            <div className="grid grid-cols-3 gap-2 pt-2 border-t border-white/5">
+                            <div className="grid grid-cols-2 gap-2 pt-2 border-t border-white/5">
                                 <div className="text-center">
                                     <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1">Goals</p>
                                     <p className="text-lg font-black text-white italic">{p.goals || 0}</p>
                                 </div>
-                                <div className="text-center border-x border-white/5">
+                                <div className="text-center border-l border-white/5">
                                     <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1">Assists</p>
                                     <p className="text-lg font-black text-white italic">{p.assists || 0}</p>
-                                </div>
-                                <div className="text-center">
-                                    <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1">Apps</p>
-                                    <p className="text-lg font-black text-white italic">{p.matches || 0}</p>
                                 </div>
                             </div>
                         </div>
