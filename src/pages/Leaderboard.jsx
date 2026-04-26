@@ -18,8 +18,9 @@ const Leaderboard = () => {
                 
                 const stats = tData.map(team => {
                     const teamMatches = mData.filter(m => m.isCompleted && (m.teamA === team.id || m.teamB === team.id));
+                    
                     let played = teamMatches.length;
-                    let wins = 0, draws = 0, losses = 0, gf = 0, ga = 0;
+                    let wins = 0, draws = 0, losses = 0, gf = 0, ga = 0, cardPoints = 0;
 
                     teamMatches.forEach(m => {
                         const isTeamA = m.teamA === team.id;
@@ -32,17 +33,55 @@ const Leaderboard = () => {
                         if (scoreMe > scoreThem) wins++;
                         else if (scoreMe === scoreThem) draws++;
                         else losses++;
+
+                        // Calculate Card Points for this team in this match
+                        (m.events || []).forEach(e => {
+                            const player = pData.find(p => p.id === e.playerId);
+                            if (player && player.teamId === team.id) {
+                                if (e.type === "yellow") cardPoints += 1;
+                                else if (e.type === "double_yellow") cardPoints += 3;
+                                else if (e.type === "red") cardPoints += 4;
+                            }
+                        });
                     });
 
                     return {
                         ...team,
                         played, wins, draws, losses, gf, ga,
                         gd: gf - ga,
-                        pts: (wins * 3) + draws
+                        pts: (wins * 3) + draws,
+                        cardPoints
                     };
                 });
 
-                setTeams(stats.sort((a, b) => b.pts - a.pts || b.gd - a.gd || b.gf - a.gf));
+                const sorted = stats.sort((a, b) => {
+                    // 1. Points
+                    if (b.pts !== a.pts) return b.pts - a.pts;
+
+                    // 2. Overall Goal Difference
+                    if (b.gd !== a.gd) return b.gd - a.gd;
+
+                    // 3. Head-to-Head Goal Difference
+                    const h2hMatches = mData.filter(m => m.isCompleted && 
+                        ((m.teamA === a.id && m.teamB === b.id) || (m.teamA === b.id && m.teamB === a.id))
+                    );
+                    let aH2HGoals = 0, bH2HGoals = 0;
+                    h2hMatches.forEach(m => {
+                        if (m.teamA === a.id) { aH2HGoals += m.scoreA; bH2HGoals += m.scoreB; }
+                        else { aH2HGoals += m.scoreB; bH2HGoals += m.scoreA; }
+                    });
+                    const aH2HGD = aH2HGoals - bH2HGoals;
+                    const bH2HGD = bH2HGoals - aH2HGoals;
+                    if (bH2HGD !== aH2HGD) return bH2HGD - aH2HGD;
+
+                    // 4. Goals Scored
+                    if (b.gf !== a.gf) return b.gf - a.gf;
+
+                    // 5. Card Points (Less is better)
+                    return a.cardPoints - b.cardPoints;
+                });
+
+                setTeams(sorted);
             } catch (err) {
                 setError("Failed to load leaderboard.");
             } finally {
@@ -138,6 +177,7 @@ const Leaderboard = () => {
                                     <th className="px-4 py-6 text-center hidden md:table-cell">GF</th>
                                     <th className="px-4 py-6 text-center hidden md:table-cell">GA</th>
                                     <th className="px-4 py-6 text-center">GD</th>
+                                    <th className="px-4 py-6 text-center text-yellow-400 hidden md:table-cell">CP</th>
                                     <th className="px-4 md:px-8 py-6 text-center bg-blue-700">PTS</th>
                                 </tr>
                             </thead>
@@ -166,6 +206,7 @@ const Leaderboard = () => {
                                         <td className={`px-4 py-6 text-center font-black italic ${team.gd > 0 ? 'text-green-400' : team.gd < 0 ? 'text-red-400' : 'text-gray-400'}`}>
                                             {team.gd > 0 ? `+${team.gd}` : team.gd}
                                         </td>
+                                        <td className="px-4 py-6 text-center font-bold text-yellow-500/80 hidden md:table-cell">{team.cardPoints}</td>
                                         <td className="px-4 md:px-8 py-6 text-center text-xl md:text-3xl font-black italic text-white bg-blue-600/20">
                                             {team.pts}
                                         </td>

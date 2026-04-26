@@ -76,6 +76,8 @@ export const recomputeStats = async () => {
                 if (playerStats[e.playerId]) playerStats[e.playerId].yellow += 1;
             } else if (e.type === "red") {
                 if (playerStats[e.playerId]) playerStats[e.playerId].red += 1;
+            } else if (e.type === "double_yellow") {
+                if (playerStats[e.playerId]) playerStats[e.playerId].red += 1;
             }
         });
     });
