@@ -72,7 +72,12 @@ const Home = () => {
                                         <div className="bg-white text-slate-950 px-6 py-2 rounded-2xl font-black text-3xl italic shadow-2xl border-2 border-white/10">
                                             {m.scoreA} - {m.scoreB}
                                         </div>
-                                        <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest mt-2 italic">Final Score</span>
+                                        <div className="text-center mt-2 flex flex-col items-center">
+                                            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest italic leading-none">Final Score</span>
+                                            <span className="text-[8px] font-black text-blue-500/60 uppercase tracking-[0.2em] mt-1.5 leading-none">
+                                                {new Date(m.date).toLocaleString([], { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true })}
+                                            </span>
+                                        </div>
                                     </div>
 
                                     <div className="flex flex-col items-center flex-1 space-y-3">
@@ -108,8 +113,13 @@ const Home = () => {
 
                                     <div className="mx-8 flex flex-col items-center">
                                         <div className="text-cyan-500 font-black text-2xl italic tracking-[0.3em]">VS</div>
-                                        <div className="text-[10px] font-black text-gray-500 uppercase tracking-widest mt-1">
-                                            {new Date(m.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                                        <div className="text-center mt-1.5 flex flex-col items-center">
+                                            <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">
+                                                {new Date(m.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                                            </div>
+                                            <div className="text-[10px] font-black text-cyan-500/80 uppercase tracking-[0.2em] mt-1.5 leading-none">
+                                                {new Date(m.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}
+                                            </div>
                                         </div>
                                     </div>
 
