@@ -63,6 +63,7 @@ const Matches = () => {
     const getIcon = (type) => {
         if (type === 'goal') return '⚽';
         if (type === 'yellow') return '🟨';
+        if (type === 'double_yellow') return '🟨🟨';
         if (type === 'red') return '🟥';
         return '';
     };
