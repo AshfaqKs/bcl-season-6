@@ -17,7 +17,7 @@ const Leaderboard = () => {
                 const [tData, pData, mData] = await Promise.all([getTeams(), getPlayers(), getMatches()]);
                 
                 const stats = tData.map(team => {
-                    const teamMatches = mData.filter(m => m.isCompleted && (m.teamA === team.id || m.teamB === team.id));
+                    const teamMatches = mData.filter(m => !m.isPlayoff && m.isCompleted && (m.teamA === team.id || m.teamB === team.id));
                     
                     let played = teamMatches.length;
                     let wins = 0, draws = 0, losses = 0, gf = 0, ga = 0, cardPoints = 0;

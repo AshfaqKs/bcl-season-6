@@ -114,34 +114,41 @@ const Matches = () => {
                                                 const teamA = teams.find(t => t.id === match.teamA);
                                                 const teamB = teams.find(t => t.id === match.teamB);
                                                 return (
-                                                    <div key={match.id} className="bg-white/10 border border-white/10 rounded-[40px] p-5 flex items-center justify-between relative overflow-hidden h-[155px] shadow-2xl">
-                                                        <div className="flex-1 flex flex-col items-center justify-center space-y-2">
-                                                            <div className="w-20 h-20 bg-white rounded-2xl flex items-center justify-center p-3 border-2 border-white/10 shadow-[0_0_30px_rgba(0,0,0,0.3)] shrink-0">
-                                                                {teamA?.logoUrl ? <img src={teamA.logoUrl} className="w-full h-full object-contain" alt="" /> : <span className="text-3xl">🛡️</span>}
+                                                    <div key={match.id} className="flex flex-col items-center w-full space-y-2">
+                                                        {match.isPlayoff && (
+                                                            <div className="w-full flex justify-center pb-2">
+                                                                <span className="text-3xl font-black text-blue-400 uppercase tracking-[0.4em] italic drop-shadow-xl">{match.playoffStage}</span>
                                                             </div>
-                                                            <span className="text-lg font-black text-white uppercase tracking-tighter w-full text-center leading-[1] italic pr-2 h-5 flex items-center justify-center">{teamA?.name}</span>
-                                                        </div>
-
-                                                        <div className="mx-8 flex flex-col items-center justify-center min-w-[180px] h-full">
-                                                            {match.isCompleted ? (
-                                                                <div className="bg-white text-slate-950 px-8 py-3 rounded-2xl font-black text-5xl shadow-2xl italic tracking-tighter leading-[1] flex items-center justify-center h-20">
-                                                                    {match.scoreA} - {match.scoreB}
+                                                        )}
+                                                        <div className="bg-white/10 border border-white/10 rounded-[40px] p-5 flex items-center justify-between relative overflow-hidden h-[155px] shadow-2xl w-full">
+                                                            <div className="flex-1 flex flex-col items-center justify-center space-y-2">
+                                                                <div className="w-20 h-20 bg-white rounded-2xl flex items-center justify-center p-3 border-2 border-white/10 shadow-[0_0_30px_rgba(0,0,0,0.3)] shrink-0">
+                                                                    {teamA?.logoUrl ? <img src={teamA.logoUrl} className="w-full h-full object-contain" alt="" /> : <span className="text-3xl">🛡️</span>}
                                                                 </div>
-                                                            ) : (
-                                                                <div className="flex flex-col items-center justify-center space-y-2 h-20">
-                                                                    <div className="text-blue-500 font-black text-4xl italic tracking-widest leading-none">VS</div>
-                                                                    <div className="text-[12px] font-black text-gray-400 uppercase tracking-[0.2em] leading-none">
-                                                                        {new Date(match.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}
+                                                                <span className="text-lg font-black text-white uppercase tracking-tighter w-full text-center leading-[1] italic pr-2 h-5 flex items-center justify-center">{teamA?.name}</span>
+                                                            </div>
+
+                                                            <div className="mx-8 flex flex-col items-center justify-center min-w-[180px] h-full">
+                                                                {match.isCompleted ? (
+                                                                    <div className="bg-white text-slate-950 px-8 py-3 rounded-2xl font-black text-5xl shadow-2xl italic tracking-tighter leading-[1] flex items-center justify-center h-20">
+                                                                        {match.scoreA} - {match.scoreB}
                                                                     </div>
-                                                                </div>
-                                                            )}
-                                                        </div>
-
-                                                        <div className="flex-1 flex flex-col items-center justify-center space-y-2">
-                                                            <div className="w-20 h-20 bg-white rounded-2xl flex items-center justify-center p-3 border-2 border-white/10 shadow-[0_0_30px_rgba(0,0,0,0.3)] shrink-0">
-                                                                {teamB?.logoUrl ? <img src={teamB.logoUrl} className="w-full h-full object-contain" alt="" /> : <span className="text-3xl">🛡️</span>}
+                                                                ) : (
+                                                                    <div className="flex flex-col items-center justify-center space-y-2 h-20">
+                                                                        <div className="text-blue-500 font-black text-4xl italic tracking-widest leading-none">VS</div>
+                                                                        <div className="text-[12px] font-black text-gray-400 uppercase tracking-[0.2em] leading-none">
+                                                                            {new Date(match.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}
+                                                                        </div>
+                                                                    </div>
+                                                                )}
                                                             </div>
-                                                            <span className="text-lg font-black text-white uppercase tracking-tighter w-full text-center leading-[1] italic pr-2 h-5 flex items-center justify-center">{teamB?.name}</span>
+
+                                                            <div className="flex-1 flex flex-col items-center justify-center space-y-2">
+                                                                <div className="w-20 h-20 bg-white rounded-2xl flex items-center justify-center p-3 border-2 border-white/10 shadow-[0_0_30px_rgba(0,0,0,0.3)] shrink-0">
+                                                                    {teamB?.logoUrl ? <img src={teamB.logoUrl} className="w-full h-full object-contain" alt="" /> : <span className="text-3xl">🛡️</span>}
+                                                                </div>
+                                                                <span className="text-lg font-black text-white uppercase tracking-tighter w-full text-center leading-[1] italic pr-2 h-5 flex items-center justify-center">{teamB?.name}</span>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 );
@@ -164,11 +171,17 @@ const Matches = () => {
                         const eventsB = events.filter(e => players.find(x => x.id === e.playerId)?.teamId === match.teamB);
 
                         return (
-                            <div key={match.id} className="animate-fadeIn">
+                            <div key={match.id} className="animate-fadeIn space-y-4">
+                                {match.isPlayoff && (
+                                    <div className="flex items-center space-x-4 pl-4 border-l-4 border-blue-600">
+                                        <span className="text-3xl md:text-5xl font-black text-white uppercase italic tracking-tighter leading-none">{match.playoffStage}</span>
+                                        <div className="h-1 flex-grow bg-gradient-to-r from-blue-600/50 to-transparent"></div>
+                                    </div>
+                                )}
                                 <div className="bg-slate-900 border border-white/10 rounded-[40px] overflow-hidden hover:border-blue-500 transition-all shadow-2xl">
-                                    <div className="p-4 bg-slate-950/50 flex justify-center border-b border-white/5">
+                                    <div className="p-4 bg-slate-950/50 flex justify-between items-center border-b border-white/5">
                                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                                            {new Date(match.date).toLocaleString([], { weekday: 'long', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true })}
+                                            {new Date(match.date).toLocaleString([], { weekday: 'long', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true }).replace(',', '')}
                                         </p>
                                     </div>
                                     

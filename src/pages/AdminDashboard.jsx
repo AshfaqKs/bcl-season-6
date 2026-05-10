@@ -4,7 +4,7 @@ import { collection, addDoc, deleteDoc, doc, getDocs, updateDoc } from "firebase
 import { signOut } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import { Loading, ErrorMessage } from "../components/Status";
-import { getTeams, getPlayers, recomputeStats } from "../firebase/firestoreUtils";
+import { getTeams, getPlayers, recomputeStats, getTopFourTeams, createPlayoffFixture, saveAwards, getAwards, saveHistory, getHistory } from "../firebase/firestoreUtils";
 
 const AdminDashboard = () => {
     const [teams, setTeams] = useState([]);
@@ -16,6 +16,9 @@ const AdminDashboard = () => {
     const [activeTab, setActiveTab] = useState("teams");
     const [resultMatch, setResultMatch] = useState(null);
     const [editingItem, setEditingItem] = useState(null);
+    const [awards, setAwards] = useState({ playerOfTheSeason: "", emergingPlayer: "", bestDefender: "", goldenGlove: "" });
+    const [history, setHistory] = useState([]);
+    const [statsFilterTeamId, setStatsFilterTeamId] = useState("all");
 
     // Form states
     const [teamName, setTeamName] = useState("");
@@ -35,14 +38,18 @@ const AdminDashboard = () => {
 
     const fetchData = async () => {
         try {
-            const [tData, pData, mSnapshot] = await Promise.all([
+            const [tData, pData, mSnapshot, aData, hData] = await Promise.all([
                 getTeams(),
                 getPlayers(),
-                getDocs(collection(db, "matches"))
+                getDocs(collection(db, "matches")),
+                getAwards(),
+                getHistory()
             ]);
             setTeams(tData);
             setPlayers(pData);
             setMatches(mSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+            if (aData) setAwards(aData);
+            if (hData) setHistory(hData);
             setError("");
         } catch (err) {
             console.error("Fetch error:", err);
@@ -158,23 +165,47 @@ const AdminDashboard = () => {
                 return cleanEv;
             });
 
+            const scoreA = parseInt(formData.get("scoreA"));
+            const scoreB = parseInt(formData.get("scoreB"));
+
             await updateDoc(doc(db, "matches", resultMatch.id), {
-                scoreA: parseInt(formData.get("scoreA")),
-                scoreB: parseInt(formData.get("scoreB")),
+                scoreA,
+                scoreB,
                 manOfTheMatchPlayerId: motm,
                 isCompleted: true,
                 events: sanitizedEvents,
                 teamAPlayers,
                 teamBPlayers
             });
+
+            // AUTO-PROPAGATE PLAYOFFS
+            if (resultMatch.isPlayoff) {
+                const winnerId = scoreA > scoreB ? resultMatch.teamA : resultMatch.teamB;
+                const loserId = scoreA > scoreB ? resultMatch.teamB : resultMatch.teamA;
+
+                if (resultMatch.playoffStage === "Qualifier 1") {
+                    const q2 = matches.find(m => m.playoffStage === "Qualifier 2");
+                    const gf = matches.find(m => m.playoffStage === "Grand Final");
+                    if (q2) await updateDoc(doc(db, "matches", q2.id), { teamA: loserId });
+                    if (gf) await updateDoc(doc(db, "matches", gf.id), { teamA: winnerId });
+                } else if (resultMatch.playoffStage === "Eliminator") {
+                    const q2 = matches.find(m => m.playoffStage === "Qualifier 2");
+                    if (q2) await updateDoc(doc(db, "matches", q2.id), { teamB: winnerId });
+                } else if (resultMatch.playoffStage === "Qualifier 2") {
+                    const gf = matches.find(m => m.playoffStage === "Grand Final");
+                    if (gf) await updateDoc(doc(db, "matches", gf.id), { teamB: winnerId });
+                }
+            }
+
             await recomputeStats();
-            alert("Result saved!");
+            alert("Result saved and bracket updated!");
             setResultMatch(null); setMatchEvents([]);
             fetchData();
         } catch (err) { setError(`Result Save Failed: ${err.message}`); }
     };
 
     const handleRevertResult = async (matchId) => {
+        const matchToRevert = matches.find(m => m.id === matchId);
         if (!window.confirm("Revert this result back to a fixture? This will wipe scores and events.")) return;
         setUploading(true);
         try {
@@ -187,8 +218,25 @@ const AdminDashboard = () => {
                 teamBPlayers: [],
                 manOfTheMatchPlayerId: ""
             });
+
+            // REVERSE PLAYOFF PROPAGATION
+            if (matchToRevert?.isPlayoff) {
+                if (matchToRevert.playoffStage === "Qualifier 1") {
+                    const q2 = matches.find(m => m.playoffStage === "Qualifier 2");
+                    const gf = matches.find(m => m.playoffStage === "Grand Final");
+                    if (q2) await updateDoc(doc(db, "matches", q2.id), { teamA: "" });
+                    if (gf) await updateDoc(doc(db, "matches", gf.id), { teamA: "" });
+                } else if (matchToRevert.playoffStage === "Eliminator") {
+                    const q2 = matches.find(m => m.playoffStage === "Qualifier 2");
+                    if (q2) await updateDoc(doc(db, "matches", q2.id), { teamB: "" });
+                } else if (matchToRevert.playoffStage === "Qualifier 2") {
+                    const gf = matches.find(m => m.playoffStage === "Grand Final");
+                    if (gf) await updateDoc(doc(db, "matches", gf.id), { teamB: "" });
+                }
+            }
+
             await recomputeStats();
-            alert("Result reverted to fixture!");
+            alert("Result reverted and bracket reset!");
             fetchData();
         } catch (err) {
             setError(`Revert Failed: ${err.message}`);
@@ -243,13 +291,13 @@ const AdminDashboard = () => {
             )}
 
             <div className="flex space-x-2 border-b border-gray-200 overflow-x-auto pb-4 scrollbar-hide">
-                {["teams", "players", "schedule", "fixtures"].map(tab => (
+                {["teams", "players", "schedule", "fixtures", "playoffs", "analysis", "awards", "detailed-stats", "history"].map(tab => (
                     <button
                         key={tab}
                         className={`pb-3 px-8 font-black uppercase tracking-widest text-[10px] transition-all whitespace-nowrap rounded-xl ${activeTab === tab ? "bg-slate-900 text-white shadow-xl scale-105" : "text-gray-400 hover:text-slate-600 bg-white border border-gray-100"}`}
                         onClick={() => { setActiveTab(tab); setResultMatch(null); setEditingItem(null); }}
                     >
-                        {tab === "schedule" ? "New Match" : tab === "fixtures" ? "Match Reports" : tab}
+                        {tab === "schedule" ? "New Match" : tab === "fixtures" ? "Reports" : tab === "analysis" ? "Stats G/A" : tab === "detailed-stats" ? "All Stats" : tab}
                     </button>
                 ))}
             </div>
@@ -541,6 +589,274 @@ const AdminDashboard = () => {
                             </section>
                         </>
                     )}
+                </div>
+            )}
+
+            {activeTab === "playoffs" && (
+                <div className="max-w-4xl mx-auto space-y-12">
+                    <div className="bg-white p-12 rounded-[40px] shadow-2xl border-4 border-blue-600 text-center space-y-8 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/5 rounded-full blur-[100px] -mr-32 -mt-32"></div>
+                        <h2 className="text-4xl font-black text-slate-900 uppercase italic tracking-tighter">Playoff <span className="text-blue-600">Generator</span></h2>
+                        <p className="text-gray-500 font-bold max-w-xl mx-auto">This will generate the full playoff schedule including Qualifier 1, Eliminator, Qualifier 2, and the Grand Final with your pre-set dates.</p>
+
+                        <div className="flex justify-center">
+                            <button
+                                onClick={async () => {
+                                    if (!window.confirm("Ready to start the playoffs? This will generate placeholders for the entire tournament bracket.")) return;
+                                    setUploading(true);
+                                    try {
+                                        const top4 = await getTopFourTeams();
+                                        if (top4.length < 4) throw new Error("Not enough teams to start playoffs (Need Top 4).");
+
+                                        const existingPlayoffs = matches.filter(m => m.isPlayoff);
+                                        if (existingPlayoffs.length > 0) throw new Error("Playoffs have already been generated!");
+
+                                        // Qualifier 1 & Eliminator (May 17)
+                                        await createPlayoffFixture(top4[0].id, top4[1].id, "Qualifier 1", "2026-05-17T19:30");
+                                        await createPlayoffFixture(top4[2].id, top4[3].id, "Eliminator", "2026-05-17T21:00");
+
+                                        // Qualifier 2 (May 23)
+                                        await createPlayoffFixture("", "", "Qualifier 2", "2026-05-23T20:30");
+
+                                        // Grand Final (May 24)
+                                        await createPlayoffFixture("", "", "Grand Final", "2026-05-24T20:00");
+
+                                        alert("Full Playoff Bracket has been generated!");
+                                        fetchData();
+                                    } catch (err) {
+                                        alert(err.message);
+                                    } finally {
+                                        setUploading(false);
+                                    }
+                                }}
+                                className="bg-slate-900 text-white px-12 py-5 rounded-[24px] font-black uppercase tracking-[0.3em] shadow-2xl hover:bg-blue-600 transition-all hover:scale-105"
+                            >
+                                🏆 Generate Full Bracket
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {activeTab === "analysis" && (
+                <div className="bg-white p-8 rounded-[40px] shadow-xl border border-gray-100 max-w-4xl mx-auto">
+                    <h2 className="text-2xl font-black mb-8 text-slate-900 uppercase italic tracking-tighter border-b pb-4">Player Performance</h2>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left">
+                            <thead>
+                                <tr className="border-b-2 border-gray-100">
+                                    <th className="py-4 font-black uppercase tracking-widest text-[10px] text-gray-400 w-12">#</th>
+                                    <th className="py-4 font-black uppercase tracking-widest text-[10px] text-gray-400">Player</th>
+                                    <th className="py-4 font-black uppercase tracking-widest text-[10px] text-gray-400">Pos</th>
+                                    <th className="py-4 font-black uppercase tracking-widest text-[10px] text-gray-400">Club</th>
+                                    <th className="py-4 font-black uppercase tracking-widest text-[10px] text-gray-400 text-center">G</th>
+                                    <th className="py-4 font-black uppercase tracking-widest text-[10px] text-gray-400 text-center">A</th>
+                                    <th className="py-4 font-black uppercase tracking-widest text-[10px] text-blue-600 text-center">Total G/A</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-50">
+                                {players.sort((a, b) => (b.goals + b.assists) - (a.goals + a.assists)).map((p, index) => (
+                                    <tr key={p.id} className="hover:bg-gray-50 transition-colors">
+                                        <td className="py-4 font-black text-gray-500 italic text-sm">{index + 1}</td>
+                                        <td className="py-4 font-bold text-slate-900">{p.name}</td>
+                                        <td className="py-4 text-[10px] font-black uppercase tracking-widest text-blue-500">{p.position}</td>
+                                        <td className="py-4 text-xs font-black uppercase tracking-widest text-gray-400">{teams.find(t => t.id === p.teamId)?.name}</td>
+                                        <td className="py-4 text-center font-bold text-slate-600">{p.goals}</td>
+                                        <td className="py-4 text-center font-bold text-slate-600">{p.assists}</td>
+                                        <td className="py-4 text-center font-black text-blue-600">{p.goals + p.assists}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
+
+            {activeTab === "awards" && (
+                <div className="bg-white p-12 rounded-[40px] shadow-2xl max-w-2xl mx-auto border border-gray-100 space-y-10">
+                    <h2 className="text-3xl font-black text-slate-900 uppercase italic tracking-tighter border-b pb-6">Season Awards</h2>
+                    <div className="space-y-8">
+                        <div className="space-y-3">
+                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Player of the Season</label>
+                            <select
+                                className="w-full px-6 py-5 bg-gray-50 border border-gray-200 rounded-[24px] font-black text-slate-900 focus:ring-4 focus:ring-blue-100 outline-none"
+                                value={awards.playerOfTheSeason}
+                                onChange={(e) => setAwards({ ...awards, playerOfTheSeason: e.target.value })}
+                            >
+                                <option value="">Select Player</option>
+                                {players.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                            </select>
+                        </div>
+                        <div className="space-y-3">
+                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Emerging Player</label>
+                            <select
+                                className="w-full px-6 py-5 bg-gray-50 border border-gray-200 rounded-[24px] font-black text-slate-900 focus:ring-4 focus:ring-blue-100 outline-none"
+                                value={awards.emergingPlayer}
+                                onChange={(e) => setAwards({ ...awards, emergingPlayer: e.target.value })}
+                            >
+                                <option value="">Select Player</option>
+                                {players.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                            </select>
+                        </div>
+                        <div className="space-y-3">
+                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Best Defender</label>
+                            <select
+                                className="w-full px-6 py-5 bg-gray-50 border border-gray-200 rounded-[24px] font-black text-slate-900 focus:ring-4 focus:ring-blue-100 outline-none"
+                                value={awards.bestDefender}
+                                onChange={(e) => setAwards({ ...awards, bestDefender: e.target.value })}
+                            >
+                                <option value="">Select Player</option>
+                                {players.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                            </select>
+                        </div>
+                        <div className="space-y-3">
+                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Golden Glove</label>
+                            <select
+                                className="w-full px-6 py-5 bg-gray-50 border border-gray-200 rounded-[24px] font-black text-slate-900 focus:ring-4 focus:ring-blue-100 outline-none"
+                                value={awards.goldenGlove}
+                                onChange={(e) => setAwards({ ...awards, goldenGlove: e.target.value })}
+                            >
+                                <option value="">Select Player</option>
+                                {players.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                            </select>
+                        </div>
+                        <button
+                            onClick={async () => {
+                                setUploading(true);
+                                try {
+                                    await saveAwards(awards);
+                                    alert("Awards saved successfully!");
+                                } catch (err) {
+                                    alert("Save failed: " + err.message);
+                                } finally {
+                                    setUploading(false);
+                                }
+                            }}
+                            className="w-full bg-slate-900 text-white py-6 rounded-[24px] font-black uppercase tracking-widest shadow-xl hover:bg-blue-600 transition-all"
+                        >
+                            🎖️ Save Awards
+                        </button>
+                    </div>
+                </div>
+            )}
+            {activeTab === "detailed-stats" && (
+                <div className="bg-white p-8 md:p-12 rounded-[40px] shadow-2xl border border-gray-100 space-y-10">
+                    <div className="flex flex-col md:flex-row justify-between items-center gap-6 border-b pb-8">
+                        <h2 className="text-3xl font-black text-slate-900 uppercase italic tracking-tighter">Full Player Metrics</h2>
+                        <div className="flex items-center space-x-4 bg-gray-50 px-6 py-3 rounded-2xl border border-gray-200">
+                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Filter by Team:</label>
+                            <select 
+                                className="bg-transparent font-black text-slate-900 outline-none uppercase text-xs"
+                                value={statsFilterTeamId}
+                                onChange={(e) => setStatsFilterTeamId(e.target.value)}
+                            >
+                                <option value="all">All Clubs</option>
+                                {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left">
+                            <thead>
+                                <tr className="text-[10px] font-black text-gray-400 uppercase tracking-widest border-b">
+                                    <th className="px-4 py-4">#</th>
+                                    <th className="px-4 py-4">Player</th>
+                                    <th className="px-4 py-4">Team</th>
+                                    <th className="px-4 py-4 text-center">G</th>
+                                    <th className="px-4 py-4 text-center">A</th>
+                                    <th className="px-4 py-4 text-center bg-gray-50">G/A</th>
+                                    <th className="px-4 py-4 text-center">YC</th>
+                                    <th className="px-4 py-4 text-center">RC</th>
+                                    <th className="px-4 py-4 text-center">CS</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-50">
+                                {players
+                                    .filter(p => statsFilterTeamId === "all" || p.teamId === statsFilterTeamId)
+                                    .sort((a, b) => (b.goals + b.assists) - (a.goals + a.assists))
+                                    .map((p, idx) => {
+                                        const team = teams.find(t => t.id === p.teamId);
+                                        return (
+                                            <tr key={p.id} className="hover:bg-gray-50/50 transition-all group">
+                                                <td className="px-4 py-6 font-black text-gray-300 italic text-xl">{idx + 1}</td>
+                                                <td className="px-4 py-6">
+                                                    <div className="flex flex-col">
+                                                        <span className="font-black text-slate-900 uppercase italic tracking-tighter">{p.name}</span>
+                                                        <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">{p.position}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-4 py-6">
+                                                    <div className="flex items-center space-x-2">
+                                                        <div className="w-6 h-6 bg-white border rounded p-1">
+                                                            {team?.logoUrl ? <img src={team.logoUrl} className="w-full h-full object-contain" alt="" /> : "🛡️"}
+                                                        </div>
+                                                        <span className="text-[10px] font-black text-slate-600 uppercase">{team?.name}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-4 py-6 text-center font-black text-slate-900 italic">{p.goals}</td>
+                                                <td className="px-4 py-6 text-center font-black text-slate-900 italic">{p.assists}</td>
+                                                <td className="px-4 py-6 text-center font-black text-blue-600 italic bg-blue-50/30 text-lg">{(p.goals || 0) + (p.assists || 0)}</td>
+                                                <td className="px-4 py-6 text-center font-black text-yellow-500 italic">{p.yellow || 0}</td>
+                                                <td className="px-4 py-6 text-center font-black text-red-500 italic">{p.red || 0}</td>
+                                                <td className="px-4 py-6 text-center font-black text-emerald-500 italic">{p.cleanSheets}</td>
+                                            </tr>
+                                        );
+                                    })}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
+            {activeTab === "history" && (
+                <div className="bg-white p-12 rounded-[40px] shadow-2xl max-w-2xl mx-auto border border-gray-100 space-y-10">
+                    <h2 className="text-3xl font-black text-slate-900 uppercase italic tracking-tighter border-b pb-6">League History (Seasons 1-5)</h2>
+                    <div className="grid gap-6">
+                        {[1, 2, 3, 4, 5].map(s => {
+                            const seasonData = (history || []).find(x => x.season === s) || { season: s, championTeamId: "" };
+                            return (
+                                <div key={s} className="p-6 bg-gray-50 rounded-3xl border border-gray-100 flex items-center justify-between gap-6">
+                                    <div className="shrink-0 w-20">
+                                        <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest">Season</p>
+                                        <p className="text-3xl font-black text-slate-900 italic">{s}</p>
+                                    </div>
+                                    <div className="flex-grow space-y-2">
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Select Champion</label>
+                                        <select 
+                                            className="w-full px-6 py-3 bg-white border border-gray-200 rounded-xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100"
+                                            value={seasonData.championTeamId}
+                                            onChange={(e) => {
+                                                const newHistory = [...(history || [])];
+                                                const idx = newHistory.findIndex(x => x.season === s);
+                                                if (idx > -1) newHistory[idx].championTeamId = e.target.value;
+                                                else newHistory.push({ ...seasonData, championTeamId: e.target.value });
+                                                setHistory(newHistory);
+                                            }}
+                                        >
+                                            <option value="">-- Choose Team --</option>
+                                            {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                                        </select>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                        <button 
+                            onClick={async () => {
+                                setUploading(true);
+                                try {
+                                    await saveHistory(history);
+                                    alert("History saved successfully!");
+                                } catch (err) {
+                                    alert("Save failed: " + err.message);
+                                } finally {
+                                    setUploading(false);
+                                }
+                            }}
+                            className="w-full bg-slate-900 text-white py-6 rounded-[24px] font-black uppercase tracking-widest shadow-xl hover:bg-blue-600 transition-all"
+                        >
+                            📜 Save Champion History
+                        </button>
+                    </div>
                 </div>
             )}
         </div>

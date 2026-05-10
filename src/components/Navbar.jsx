@@ -18,6 +18,8 @@ const Navbar = () => {
         { name: 'Players', path: '/players' },
         { name: 'Teams', path: '/teams' },
         { name: 'Leaderboard', path: '/leaderboard' },
+        { name: 'Playoffs', path: '/playoffs' },
+        { name: 'History', path: '/history' },
         { name: 'Goals', path: '/top-scorers' },
         { name: 'Assists', path: '/top-assists' },
         { name: 'Walls', path: '/clean-sheets' },

@@ -15,6 +15,8 @@ import CleanSheets from "./pages/CleanSheets";
 import Discipline from "./pages/Discipline";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
+import Playoffs from "./pages/Playoffs";
+import History from "./pages/History";
 
 const ProtectedRoute = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -50,6 +52,8 @@ function App() {
             <Route path="/top-assists" element={<TopAssists />} />
             <Route path="/clean-sheets" element={<CleanSheets />} />
             <Route path="/discipline" element={<Discipline />} />
+            <Route path="/playoffs" element={<Playoffs />} />
+            <Route path="/history" element={<History />} />
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
           </Routes>
